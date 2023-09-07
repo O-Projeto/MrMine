@@ -1,5 +1,10 @@
 #include "Servo.h"
 #include <Arduino.h>
+#include "esp_log.h"
+#include <typeinfo>
+
+
+static char* TAG = "MAINSERVO";
 
 static const int thumb = 33;
 static const int pointing = 25;
@@ -28,35 +33,48 @@ void setup() {
 }
 
 void loop() {
-    /*for(int posDegrees = 0; posDegrees <= 180; posDegrees++) {
-        servo1.write(posDegrees);
-        servo2.write(posDegrees);
-        servo3.write(posDegrees);
-        servo4.write(posDegrees);
-        servo5.write(posDegrees);
-        Serial.println(posDegrees);
-        delay(20);
-    }
+    // for(int posDegrees = 0; posDegrees <= 180; posDegrees++) {
+    //     servo1.write(posDegrees);
+    //     servo2.write(posDegrees);
+    //     servo3.write(posDegrees);
+    //     servo4.write(posDegrees);
+    //     servo5.write(posDegrees);
+    //     Serial.println(posDegrees);
+    //     delay(20);
+    // }
 
-    for(int posDegrees = 180; posDegrees >= 0; posDegrees--) {
-        servo1.write(posDegrees);
-        servo2.write(posDegrees);
-        servo3.write(posDegrees);
-        servo4.write(posDegrees);
-        servo5.write(posDegrees);
-        Serial.println(posDegrees);
-        delay(20);
-    }*/
+    // for(int posDegrees = 180; posDegrees >= 0; posDegrees--) {
+    //     servo1.write(posDegrees);
+    //     servo2.write(posDegrees);
+    //     servo3.write(posDegrees);
+    //     servo4.write(posDegrees);
+    //     servo5.write(posDegrees);
+    //     Serial.println(posDegrees);
+    //     delay(20);
+    // }
 
-    if (Serial.available() > 0) {
-        data = Serial.readString();
-        data.trim();
+    if (Serial.available() ) {
+        //data = Serial.readString();
+        //data.trim();
+        data = Serial.readStringUntil('\n');
+        
 
-        //int dataT = data.substring(0,4).toInt();
+
+        Serial.println("data" + data);
+        int dataT = data.substring(0,4).toInt();
+        Serial.println(dataT);
         int dataPOINT = data.substring(5,9).toInt();
-        // int dataM = data.substring(10,14).toInt();
-        // int dataFF = data.substring(15,19).toInt();
-        // int dataP = data.substring(20,25).toInt();
-         servo2.write(abs(2*dataPOINT));
+        int dataM = data.substring(10,14).toInt();
+        int dataFF = data.substring(15,19).toInt();
+        int dataP = data.substring(20,25).toInt();
+        
+        
+        
+        servo1.write(abs(dataT));
+        servo2.write(abs(dataPOINT));
+        servo3.write(abs(dataM));
+        servo4.write(abs(dataFF));
+        servo5.write(abs(dataP));
+        ESP_LOGI(&TAG, "dataPOINT:%d", dataPOINT);
     }
 }
