@@ -1,7 +1,9 @@
 import cv2 as cv
 import time
+import threading
 import os
 
+import ComSerial
 import HandTracking as ht
 
 # from light import luz
@@ -41,10 +43,12 @@ while True:
         else:
             fingers.append(0)
 
+        index = lmList[tipIds[0]][0]
+        dist = int(lmList[tipIds[0]][1]) - int(lmList[tipIds[0] - 1][1])
+        matriz.append([index, dist])            
 
         # excluding thumb
         for id in range(1, 5):
-
             if lmList[tipIds[id]][2] < lmList[tipIds[id] - 2][2]:
                 fingers.append(1)
             else:
@@ -54,11 +58,13 @@ while True:
             valor2 = int(lmList[tipIds[id]][2]) - int(lmList[tipIds[id] - 2][2])
             
             # Adicione o par de valores como uma lista à matriz
+            
             matriz.append([valor1, valor2])
-
-        # Agora, matriz contém os pares de valores desejados
-        for linha in matriz:
-            print(linha)
+        
+        print(matriz)
+        data = threading.Thread(target=ComSerial.cordenadas(matriz))
+        data.start()
+        matriz = []
 
 
         number_fingers = sum(fingers)
@@ -72,3 +78,5 @@ while True:
     cv.imshow("Image", img)
     if cv.waitKey(20) & 0xFF == ord('q'):
         break
+
+# print(matriz)

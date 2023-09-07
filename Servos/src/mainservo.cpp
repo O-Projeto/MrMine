@@ -14,9 +14,12 @@ Servo servo3;
 Servo servo4;
 Servo servo5;
 
+String data;
+
 
 void setup() {
     Serial.begin(115200);
+    Serial.setTimeout(10);
     servo1.attach(thumb);
     servo2.attach(pointing);
     servo3.attach(middle);
@@ -25,7 +28,7 @@ void setup() {
 }
 
 void loop() {
-    for(int posDegrees = 0; posDegrees <= 180; posDegrees++) {
+    /*for(int posDegrees = 0; posDegrees <= 180; posDegrees++) {
         servo1.write(posDegrees);
         servo2.write(posDegrees);
         servo3.write(posDegrees);
@@ -43,5 +46,17 @@ void loop() {
         servo5.write(posDegrees);
         Serial.println(posDegrees);
         delay(20);
+    }*/
+
+    if (Serial.available() > 0) {
+        data = Serial.readString();
+        data.trim();
+
+        //int dataT = data.substring(0,4).toInt();
+        int dataPOINT = data.substring(5,9).toInt();
+        // int dataM = data.substring(10,14).toInt();
+        // int dataFF = data.substring(15,19).toInt();
+        // int dataP = data.substring(20,25).toInt();
+         servo2.write(abs(2*dataPOINT));
     }
 }
