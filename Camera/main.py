@@ -17,7 +17,6 @@ DEBUG = False
 wCam, hCam = 640, 480
 
 cap = cv.VideoCapture(0)
-
 cap.set(3, wCam)
 cap.set(4, hCam)
 
@@ -31,7 +30,7 @@ trigger_key = "c"
 
 
 angulos_base = None
-
+range_calibrado = None
 matriz = []
 
 
@@ -200,10 +199,11 @@ def dedao_define_distancia_negativa_ou_positiva(base,angulo_atual):
 
 def key_pressed():
     global angulos_base
+    global range_calibrado
     print("Comecando calibracao:")
     time.sleep(0.1)
     print("Fique com a mao aberta e parada")
-    time.sleep(2)
+    time.sleep(3)
     success, img = cap.read()
     img = detector.findHands(img)
     lmList = detector.findPosition(img, draw=False)
@@ -211,9 +211,44 @@ def key_pressed():
     if(len(lmList) != 0):
         distances = compare_distances(lmList)
         angulos_base = {"4":distances[0][1],"8":distances[1][1],"12":distances[2][1],"16":distances[3][1],"20":distances[4][1]}
-        print(angulos_base)
+        distancia_aberta = {"4":distances[0][2],"8":distances[1][2],"12":distances[2][2],"16":distances[3][2],"20":distances[4][2]}
+        #print(angulos_base)
+        
     else:
         print("mao nao detectada, aperte a tecla novamente")
+        
+    print("feche a mao")
+    time.sleep(4)
+    success, img = cap.read()
+    img = detector.findHands(img)
+    lmList = detector.findPosition(img, draw=False)
+    
+    
+    
+    if(len(lmList) != 0):
+        distances = compare_distances(lmList)
+        distancia_fechada = {"4":distances[0][2],"8":distances[1][2],"12":distances[2][2],"16":distances[3][2],"20":distances[4][2]}
+        distancia_fechada = make_negative(distancia_fechada)
+        range_calibrado = [[distancia_fechada["4"]-10,distancia_aberta["4"]+10],[distancia_fechada["8"]-10,distancia_aberta["8"]+10],[distancia_fechada["12"]-10,distancia_aberta["12"]+10],[distancia_fechada["16"]-10,distancia_aberta["16"]+10],[distancia_fechada["20"]-10,distancia_aberta["20"]+10]]
+        print(distancia_aberta)
+        print(distancia_fechada)
+        print(range_calibrado)
+        print("Calibrado")
+    else:
+        print("mao nao detectada, aperte a tecla novamente")
+
+def make_negative(distancia_fechada):
+    for key in distancia_fechada:
+        if distancia_fechada[key] > 0:
+            distancia_fechada[key] = -distancia_fechada[key]
+        else:
+            pass
+    
+    return distancia_fechada
+
+
+
+
 
 #configuração inicial necessaria
 print("configuracao inicial")
@@ -248,14 +283,15 @@ while True:
             simbolo = "quatro"
         elif distances[0][2] > 0 and distances[1][2] > 0 and distances[2][2] > 0 and distances[3][2] > 0 and distances[4][2] < 0:
             simbolo = "quatro"
-        #elif distances[1][2] > 0 and distances[2][2] < 0 and distances[3][2] < 0 and distances[4][2] > 0:
-        #    simbolo = "rock"
+        elif distances[0][2] > 0 and distances[1][2] > 0 and distances[2][2] > 0 and distances[3][2] > 0 and distances[4][2] > 0:
+            simbolo = "cinco"
         elif distances[0][2] > 0 and distances[1][2] < 0 and distances[2][2] < 0 and distances[3][2] < 0 and distances[4][2] < 0:
             simbolo = "blz"
         elif distances[0][2] > 0 and distances[1][2] < 0 and distances[2][2] < 0 and distances[3][2] < 0 and distances[4][2] > 0:
             simbolo = "deboa"
         #print(matriz)
-        data = threading.Thread(target=ComSerial.cordenadas(distances))
+        
+        data = threading.Thread(target=ComSerial.cordenadas(distances,range_calibrado))
         data.start()
         matriz = []
 
@@ -264,12 +300,12 @@ while True:
         if DEBUG:
             print(fingers, number_fingers)
 
-        cv.putText(img, str(simbolo), (100, 70),
-                   cv.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 3)
+        cv.putText(img, str(simbolo), (80, 70),
+                   cv.FONT_HERSHEY_PLAIN, 3, (92, 85, 71), 3)
 
         if lmList:
             for id, (x,y,z) in enumerate(lmList):
-                cv.putText(img, str(id) + ":" + str(y) + "," + str(z) , (y + 1, z - 1), cv.FONT_HERSHEY_COMPLEX, 0.25, (0, 0, 0), 1)
+                cv.putText(img, str(id) + ":" + str(y) + "," + str(z) , (y + 1, z - 1), cv.FONT_HERSHEY_COMPLEX, 0.35, (0, 0, 0), 1)
         
     cv.imshow("Image", img)
     if cv.waitKey(20) & 0xFF == ord('q'):

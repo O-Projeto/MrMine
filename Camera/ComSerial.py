@@ -5,6 +5,8 @@ import time
 esp = serial.Serial(port='COM9', baudrate=115200, timeout=.1)
 esp.flush()
 
+
+
 def enviar_comando(x):
     esp.write(bytes(x, "utf-8"))
     # retorno = esp.readline()
@@ -16,58 +18,66 @@ def enviar_comando(x):
 
 
 
-def range_checker(a,b,c,d,e):
-    if a < -60 or a > 60:
-        print("invalido",value)
+def range_checker(range_calculo,a,b,c,d,e):
+
+    if a < range_calculo[0][0] or a > range_calculo[0][1]:
+        print("invalido a",a)
         return "invalido"
-    elif b < -60 or b > 60:
-        print("invalido",b)
+    elif b < range_calculo[1][0] or b > range_calculo[1][1]:
+        print("invalido b",b)
         return "invalido"
-    elif c < -60 or c > 60:
-        print("invalido",c)
+    elif c < range_calculo[2][0] or c > range_calculo[2][1]:
+        print("invalido c",c)
         return "invalido"
-    elif d < -60 or d > 60:
-        print("invalido",d)
+    elif d < range_calculo[3][0]  or d > range_calculo[3][1]:
+        print("invalido d",d)
         return "invalido"
-    elif e < -60 or e > 60:
-        print("invalido",e)
+    elif e < range_calculo[4][0] or e > range_calculo[4][1]:
+        print("invalido e",e)
         return "invalido"
     else:
         return "valido"
 
-def cordenadas(matriz):
+def cordenadas(matriz,range_calibrado):
+    range_calculo = range_changer(range_calibrado)
+    #print("ranges",range_calculo)
     checador_validade = "valido"
     #print(matriz)
-    t = matriz[0][1]
-    point= matriz[1][1]
-    m= matriz[2][1]
-    ff= matriz[3][1]
-    p= matriz[4][1]
-    
-    #checador_validade = range_checker(t,point,m,ff,p)
-    #if checador_validade == "invalido":
-    #    print("mude de posição a mão")
-    #    return
+    t = matriz[0][2]
+    point= matriz[1][2]
+    m= matriz[2][2]
+    ff= matriz[3][2]
+    p= matriz[4][2]
+    #print("distancias",t,point,m,ff,p)
+    checador_validade = range_checker(range_calculo,t,point,m,ff,p)
+    if checador_validade == "invalido":
+        print("mude de posicao a mao")
+        return
 
-    #t = int(conversao_proporcao(t))
-    #point = int(conversao_proporcao(point))
-    #m = int(conversao_proporcao(m))
-    #ff = int(conversao_proporcao(ff))
-    #p = int(conversao_proporcao(p))
-    msg = format(int(t), '04d')+","+ format(int(point), '04d')+","+ format(int(m), '04d')+","+ format(int(ff), '04d')+","+ format(int(p), '04d')
+    t = int(conversao_proporcao(range_calculo[0],t))
+    point = int(conversao_proporcao(range_calculo[1],point))
+    m = int(conversao_proporcao(range_calculo[2],m))
+    ff = int(conversao_proporcao(range_calculo[3],ff))
+    p = int(conversao_proporcao(range_calculo[4],p))
+    msg = format(int(t), '03d')+","+ format(int(point), '03d')+","+ format(int(m), '03d')+","+ format(int(ff), '03d')+","+ format(int(p), '03d')
     #print(msg)
     enviar_comando(msg)
 
 
+def range_changer(range_calibrado):
+    global range_calculo
 
+    range_calculo = range_calibrado
+    return range_calculo
 
-def conversao_proporcao(value):
+def conversao_proporcao(range_calculo,value):
     # Check if the input value is within the range -60 to 60
-    if value < -60 or value > 60:
+    if value < range_calculo[0] or value > range_calculo[1]:
         raise ValueError("Input value must be in the range -60 to 60")
     
     # Calculate the proportion using linear interpolation
-    proportion = 20 + (value + 60) * (160 - 20) / 120
-    
-    return proportion
+    proportion = 20 + (value - range_calculo[0]) * (130 - 20) / (range_calculo[1] - range_calculo[0])
+    inverted = 130 - proportion + 20
+    print(proportion,"invertido",inverted)
+    return inverted
 

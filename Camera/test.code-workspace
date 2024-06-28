@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../Servos"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"typeinfo": "cpp"
+		}
+	}
+}
